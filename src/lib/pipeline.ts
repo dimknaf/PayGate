@@ -106,7 +106,12 @@ async function streamAgentResponse(
           log(invoiceId, `[tool:start] ${msg.name}`, argsStr);
           emitToolActivity(invoiceId, msg.name, 'running', msg.args);
         } else if (msg.status === 'completed') {
-          const resultPreview = msg.result ? String(typeof msg.result === 'string' ? msg.result : JSON.stringify(msg.result)).substring(0, 200) : '';
+          // For most tools 200 chars is fine; for `task` we need much more
+          // because it carries the entire subagent transcript.
+          const previewLimit = msg.name === 'task' ? 5000 : 200;
+          const resultPreview = msg.result
+            ? String(typeof msg.result === 'string' ? msg.result : JSON.stringify(msg.result)).substring(0, previewLimit)
+            : '';
           log(invoiceId, `[tool:done]  ${msg.name}${resultPreview ? ' → ' + resultPreview : ''}`);
           emitToolActivity(invoiceId, msg.name, 'completed', undefined);
           if (msg.name === 'task') {
@@ -170,6 +175,34 @@ function formatStats(stats: Record<string, number>): string {
 }
 
 /**
+ * Extract the (kind, payload) pair from a ConversationStep, tolerating both
+ * SDK serialization shapes:
+ *   - tagged union:    { type: "toolCall", message: {...} }
+ *   - bag-of-keys:     { toolCall: {...} }   (what the SDK actually emits)
+ */
+function extractStepKindAndPayload(
+  rawStep: unknown
+): { kind: string; payload: Record<string, unknown> } | null {
+  if (!rawStep || typeof rawStep !== 'object') return null;
+  const step = rawStep as Record<string, unknown>;
+
+  if (typeof step.type === 'string') {
+    const inner = step.message ?? step.payload ?? step;
+    return { kind: step.type, payload: inner as Record<string, unknown> };
+  }
+
+  // Bag-of-keys shape: pick the first non-meta key
+  for (const key of Object.keys(step)) {
+    if (key === 'agentId' || key === 'runId' || key === 'callId') continue;
+    const value = step[key];
+    if (value && typeof value === 'object') {
+      return { kind: key, payload: value as Record<string, unknown> };
+    }
+  }
+  return null;
+}
+
+/**
  * Walk a `task` tool's result and log every nested subagent tool call. The
  * subagent's tool calls (Specter MCP, web_search, browser_*) are nested
  * inside `result.value.conversationSteps` and never reach the parent stream
@@ -177,42 +210,87 @@ function formatStats(stats: Record<string, number>): string {
  * actually used its tools or just hallucinated answers.
  */
 function walkSubagentToolCalls(invoiceId: string, taskResult: unknown): Record<string, number> {
-  const stats: Record<string, number> = {};
+  const toolStats: Record<string, number> = {};
+  const kindStats: Record<string, number> = {};
   const steps = (taskResult as { value?: { conversationSteps?: unknown[] } } | undefined)
     ?.value?.conversationSteps;
+
   if (!Array.isArray(steps)) {
     log(invoiceId, '[subagent] no conversationSteps in task result — agent may not have used any tools');
-    return stats;
+    return toolStats;
+  }
+
+  // Diagnostic: log the first step's structure so we always see the actual schema.
+  if (steps.length > 0 && steps[0] && typeof steps[0] === 'object') {
+    const firstKeys = Object.keys(steps[0] as Record<string, unknown>);
+    log(invoiceId, `[subagent] first step keys: [${firstKeys.join(', ')}]`);
   }
 
   for (const rawStep of steps) {
-    const step = rawStep as { type?: string; message?: Record<string, unknown> } | null;
-    if (!step || step.type !== 'toolCall') continue;
-    const m = (step.message ?? {}) as Record<string, unknown>;
-    const name = String(m.name ?? m.type ?? 'unknown');
-    const status = String(m.status ?? '?');
-    stats[name] = (stats[name] ?? 0) + 1;
+    const extracted = extractStepKindAndPayload(rawStep);
+    if (!extracted) continue;
+    const { kind, payload } = extracted;
+    kindStats[kind] = (kindStats[kind] ?? 0) + 1;
+
+    if (!/toolcall|tool_call|toolUse|tool_use/i.test(kind)) continue;
+
+    // Real SDK shape:  { toolCall: { webSearchToolCall: { args, result, ... } } }
+    // The inner discriminator key (e.g. "webSearchToolCall", "getMcpToolsToolCall",
+    // "browserToolCall", "callMcpToolToolCall") names the actual tool.
+    let inner: Record<string, unknown> = payload;
+    let resolvedName: string | null = null;
+    for (const innerKey of Object.keys(payload)) {
+      if (innerKey === 'message' || innerKey === 'payload') continue;
+      const v = payload[innerKey];
+      if (v && typeof v === 'object' && /toolcall|tool_call/i.test(innerKey)) {
+        resolvedName = innerKey.replace(/ToolCall$/i, '').replace(/_tool_call$/i, '');
+        inner = v as Record<string, unknown>;
+        break;
+      }
+    }
+
+    // Fallbacks for the tagged-union shape: { type: "toolCall", message: { name } }
+    const m = (inner.message ?? inner) as Record<string, unknown>;
+    const name = String(resolvedName ?? m.name ?? m.type ?? inner.name ?? 'unknown');
+    const status = String(
+      (inner.result && typeof inner.result === 'object' && 'error' in (inner.result as object)
+        ? 'error'
+        : inner.result
+          ? 'success'
+          : (m.status ?? inner.status ?? '?'))
+    );
+    toolStats[name] = (toolStats[name] ?? 0) + 1;
+    const callArgs = (inner.args ?? m.args ?? payload.args) as Record<string, unknown> | undefined;
+    const callResult = inner.result ?? m.result ?? payload.result;
     log(
       invoiceId,
-      `  [subtool] ${name} (${status}) args=${preview(m.args, 160)} → ${preview(m.result, 160)}`
+      `  [subtool] ${name} (${status}) args=${preview(callArgs, 160)} → ${preview(callResult, 160)}`
     );
 
-    if (/specter|mcp/i.test(name)) {
-      emitActivity(invoiceId, 'subagent_tool_call', `Specter MCP: ${name} (${status})`, {
+    // Tool-name routing: real SDK names are like "webSearch", "getMcpTools",
+    // "callMcpTool", "browser", "screenshot"…
+    if (/mcp/i.test(name) || /specter/i.test(name)) {
+      // callMcpTool args usually contain { serverName, name, arguments }
+      const mcpServer = (callArgs?.serverName ?? callArgs?.server) as string | undefined;
+      const mcpTool = (callArgs?.name ?? callArgs?.toolName) as string | undefined;
+      const label = mcpServer
+        ? `MCP ${mcpServer}.${mcpTool ?? '?'} (${status})`
+        : `MCP: ${name} (${status})`;
+      emitActivity(invoiceId, 'subagent_tool_call', label, {
         name,
         status,
-        args: m.args,
+        args: callArgs,
       });
     } else if (/web[_-]?search/i.test(name)) {
-      const q = (m.args as { query?: string } | undefined)?.query;
+      const q = (callArgs?.query ?? callArgs?.searchTerm) as string | undefined;
       emitActivity(
         invoiceId,
         'subagent_tool_call',
         q ? `Web search: "${preview(q, 60)}"` : `Web search executed (${status})`,
         { name, status }
       );
-    } else if (/browser|navigate|screenshot/i.test(name)) {
-      const url = (m.args as { url?: string } | undefined)?.url;
+    } else if (/browser|navigate|screenshot|fetch/i.test(name)) {
+      const url = callArgs?.url as string | undefined;
       emitActivity(
         invoiceId,
         'subagent_tool_call',
@@ -221,7 +299,22 @@ function walkSubagentToolCalls(invoiceId: string, taskResult: unknown): Record<s
       );
     }
   }
-  return stats;
+
+  // Always log the kind histogram — it tells us what shapes the SDK emits.
+  log(invoiceId, `[subagent] step kinds — ${formatStats(kindStats)}`);
+
+  // If we saw toolCall-like kinds but extracted zero, the inner shape was
+  // unexpected — dump the raw JSON so the next iteration can fix it.
+  const sawToolCallKind = Object.keys(kindStats).some((k) => /toolcall|tool_call|toolUse|tool_use/i.test(k));
+  if (sawToolCallKind && Object.keys(toolStats).length === 0) {
+    log(
+      invoiceId,
+      `[subagent] WARNING: detected toolCall kinds but extracted no entries — raw dump follows:`
+    );
+    log(invoiceId, JSON.stringify(steps, null, 2).substring(0, 4000));
+  }
+
+  return toolStats;
 }
 
 function emitToolActivity(invoiceId: string, toolName: string, status: string, args?: unknown) {

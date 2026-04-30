@@ -277,6 +277,11 @@ function defaultAgentFactory(): AgentFactory {
           description: 'Conducts full vendor due diligence: Specter company lookup, people search, web search, website visit, and produces analyst-grade risk briefs with structured risk scores.',
           prompt: VENDOR_INTELLIGENCE_PROMPT,
           model: { id: 'claude-sonnet-4-6' },
+          // Subagents do NOT inherit the parent agent's MCP servers — they
+          // must opt-in by name (or full config). Without this, the subagent
+          // sees `{"servers":[]}` from getMcpToolsToolCall and silently
+          // falls back to web-only research.
+          mcpServers: ['specter'],
         },
       },
     });
