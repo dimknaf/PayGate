@@ -4,6 +4,10 @@
 
 **Track 1: Money Movement** — Cursor × Briefcase Hackathon, London 2026
 
+### Demo
+
+[![PayGate Demo](https://img.youtube.com/vi/HxabrhOAH5o/maxresdefault.jpg)](https://youtu.be/HxabrhOAH5o)
+
 ---
 
 ## The Problem
