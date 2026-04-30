@@ -6,7 +6,7 @@ import { emitActivity } from '@/lib/events';
 import { Invoice } from '@/lib/types';
 import seedInvoices from '@/data/seed-invoices.json';
 
-const PIPELINE_TIMEOUT_MS = 120_000;
+const PIPELINE_TIMEOUT_MS = 30 * 60_000;
 
 export async function POST(req: NextRequest) {
   try {
