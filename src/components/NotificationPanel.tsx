@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Check, Users, AlertCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Mail, Check, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { NotificationRecipient } from '@/lib/types';
 
 const priorityConfig = {
