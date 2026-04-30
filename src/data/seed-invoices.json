@@ -1,0 +1,125 @@
+[
+  {
+    "id": "INV-2026-001",
+    "vendorName": "Synthesia",
+    "vendorDomain": "synthesia.io",
+    "vendorAddress": "Kent House, 14-17 Market Place, London W1W 8AJ, UK",
+    "amount": 800,
+    "currency": "GBP",
+    "lineItems": [
+      {
+        "description": "AI Video Platform - Monthly Subscription (Enterprise)",
+        "quantity": 1,
+        "unitPrice": 800,
+        "total": 800
+      }
+    ],
+    "dueDate": "2026-05-15",
+    "invoiceDate": "2026-04-28",
+    "invoiceNumber": "SYN-2026-4481",
+    "description": "Monthly subscription for AI video generation platform, Enterprise tier. 50 video credits included.",
+    "rawText": "INVOICE\n\nFrom: Synthesia Ltd\nKent House, 14-17 Market Place\nLondon W1W 8AJ, United Kingdom\nVAT: GB321654987\nwww.synthesia.io\n\nInvoice #: SYN-2026-4481\nDate: 28 April 2026\nDue: 15 May 2026\n\nBill To: Acme Corp Ltd\n\nDescription: AI Video Platform - Monthly Subscription (Enterprise)\nQty: 1\nUnit Price: £800.00\nTotal: £800.00\n\nSubtotal: £800.00\nVAT (20%): £160.00\nTotal Due: £960.00\n\nPayment Terms: Net 15\nBank: Barclays\nSort Code: 20-45-78\nAccount: 73948261"
+  },
+  {
+    "id": "INV-2026-002",
+    "vendorName": "GlobalTrade Dynamics LLC",
+    "vendorDomain": "globaltradedynamics.biz",
+    "vendorAddress": "Suite 400, 1200 Commerce Blvd, Wilmington, DE 19801, USA",
+    "amount": 15000,
+    "currency": "GBP",
+    "lineItems": [
+      {
+        "description": "Strategic Market Entry Consulting - Phase 1",
+        "quantity": 1,
+        "unitPrice": 9000,
+        "total": 9000
+      },
+      {
+        "description": "Regulatory Compliance Assessment",
+        "quantity": 1,
+        "unitPrice": 6000,
+        "total": 6000
+      }
+    ],
+    "dueDate": "2026-05-10",
+    "invoiceDate": "2026-04-25",
+    "invoiceNumber": "GTD-0001",
+    "description": "Strategic consulting services for APAC market entry. Phase 1 assessment and regulatory compliance review.",
+    "rawText": "INVOICE\n\nFrom: GlobalTrade Dynamics LLC\nSuite 400, 1200 Commerce Blvd\nWilmington, DE 19801, USA\nwww.globaltradedynamics.biz\n\nInvoice #: GTD-0001\nDate: 25 April 2026\nDue: 10 May 2026\n\nBill To: Acme Corp Ltd\n\nLine Items:\n1. Strategic Market Entry Consulting - Phase 1: £9,000.00\n2. Regulatory Compliance Assessment: £6,000.00\n\nSubtotal: £15,000.00\nTotal Due: £15,000.00\n\nPayment Terms: Net 15\nWire Transfer Details:\nBank: First National Bank\nRouting: 021000021\nAccount: 4859302716\n\nNote: First invoice. Payment expected within terms to begin Phase 2."
+  },
+  {
+    "id": "INV-2026-003",
+    "vendorName": "Beam AI",
+    "vendorDomain": "beam.ai",
+    "vendorAddress": "548 Market St, Suite 36879, San Francisco, CA 94104, USA",
+    "amount": 3200,
+    "currency": "GBP",
+    "lineItems": [
+      {
+        "description": "AI Agent Platform - Professional Plan (Annual, Monthly Billing)",
+        "quantity": 1,
+        "unitPrice": 2400,
+        "total": 2400
+      },
+      {
+        "description": "Custom Agent Development - Setup Fee",
+        "quantity": 1,
+        "unitPrice": 800,
+        "total": 800
+      }
+    ],
+    "dueDate": "2026-05-20",
+    "invoiceDate": "2026-04-29",
+    "invoiceNumber": "BEAM-26-0892",
+    "description": "AI agent platform subscription and custom agent setup for internal workflow automation.",
+    "rawText": "INVOICE\n\nFrom: Beam AI Inc.\n548 Market St, Suite 36879\nSan Francisco, CA 94104, USA\nwww.beam.ai\n\nInvoice #: BEAM-26-0892\nDate: 29 April 2026\nDue: 20 May 2026\n\nBill To: Acme Corp Ltd\n\nLine Items:\n1. AI Agent Platform - Professional Plan (Annual, Monthly): £2,400.00\n2. Custom Agent Development - Setup Fee: £800.00\n\nSubtotal: £3,200.00\nTotal Due: £3,200.00\n\nPayment Terms: Net 21\nPayment via wire transfer or ACH.\nBank: Silicon Valley Bank\nRouting: 121140399\nAccount: 3304729185"
+  },
+  {
+    "id": "INV-2026-004",
+    "vendorName": "Wise",
+    "vendorDomain": "wise.com",
+    "vendorAddress": "6th Floor, Tea Building, 56 Shoreditch High St, London E1 6JJ, UK",
+    "amount": 4500,
+    "currency": "GBP",
+    "lineItems": [
+      {
+        "description": "Wise Business - International Transfer Fees (Q1 2026)",
+        "quantity": 1,
+        "unitPrice": 2800,
+        "total": 2800
+      },
+      {
+        "description": "Multi-Currency Account - Premium Tier (Q1 2026)",
+        "quantity": 1,
+        "unitPrice": 1700,
+        "total": 1700
+      }
+    ],
+    "dueDate": "2026-05-30",
+    "invoiceDate": "2026-04-30",
+    "invoiceNumber": "WISE-UK-2026-18847",
+    "description": "Quarterly billing for Wise Business services including international transfer fees and premium multi-currency account.",
+    "rawText": "INVOICE\n\nFrom: Wise Payments Limited\n6th Floor, Tea Building\n56 Shoreditch High St\nLondon E1 6JJ, United Kingdom\nCompany No: 07209813\nVAT: GB234567890\nwww.wise.com\n\nInvoice #: WISE-UK-2026-18847\nDate: 30 April 2026\nDue: 30 May 2026\n\nBill To: Acme Corp Ltd\n\nLine Items:\n1. Wise Business - International Transfer Fees (Q1 2026): £2,800.00\n2. Multi-Currency Account - Premium Tier (Q1 2026): £1,700.00\n\nSubtotal: £4,500.00\nVAT (20%): £900.00\nTotal Due: £5,400.00\n\nPayment Terms: Net 30\nBank: Barclays\nSort Code: 23-14-70\nAccount: 62839104"
+  },
+  {
+    "id": "INV-2026-005",
+    "vendorName": "NovaPeak Consulting",
+    "vendorDomain": "novapeakconsulting.com",
+    "vendorAddress": "71 Bakers Row, London EC1R 3DD, UK",
+    "amount": 2800,
+    "currency": "GBP",
+    "lineItems": [
+      {
+        "description": "Data Architecture Review & Optimization",
+        "quantity": 1,
+        "unitPrice": 2800,
+        "total": 2800
+      }
+    ],
+    "dueDate": "2026-05-12",
+    "invoiceDate": "2026-04-27",
+    "invoiceNumber": "NPC-2026-003",
+    "description": "Data architecture review and optimization services for cloud migration project. 5 days of consulting.",
+    "rawText": "INVOICE\n\nFrom: NovaPeak Consulting Ltd\n71 Bakers Row\nLondon EC1R 3DD, UK\nCompany No: 15482931\nwww.novapeakconsulting.com\n\nInvoice #: NPC-2026-003\nDate: 27 April 2026\nDue: 12 May 2026\n\nBill To: Acme Corp Ltd\n\nDescription: Data Architecture Review & Optimization\nRate: £560/day\nDays: 5\nTotal: £2,800.00\n\nSubtotal: £2,800.00\nVAT (20%): £560.00\nTotal Due: £3,360.00\n\nPayment Terms: Net 15\nBank: HSBC\nSort Code: 40-11-60\nAccount: 51827364\n\nNote: This is our third invoice. Previous invoices NPC-2026-001 and NPC-2026-002 paid on time."
+  }
+]
