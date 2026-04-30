@@ -1,5 +1,4 @@
 import type { SDKAgent, ModelSelection, SDKMessage } from '@cursor/sdk';
-import { getAgent } from './agent';
 import { emitActivity } from './events';
 import { store } from './store';
 import {
@@ -189,10 +188,9 @@ function emitToolActivity(invoiceId: string, toolName: string, status: string, a
 }
 
 // Layer 1: Parse the invoice
-async function parseInvoice(invoice: Invoice): Promise<Record<string, unknown>> {
+async function parseInvoice(agent: SDKAgent, invoice: Invoice): Promise<Record<string, unknown>> {
   emitActivity(invoice.id, 'parsing_started', `Parsing invoice ${invoice.invoiceNumber} from ${invoice.vendorName}...`);
 
-  const agent = await getAgent();
   const prompt = `Parse this invoice and extract structured data. Return ONLY JSON, nothing else.\n\n${invoice.rawText}`;
   const response = await streamAgentResponse(agent, prompt, invoice.id, 'invoice-parser', { model: { id: 'composer-2' } });
 
@@ -218,7 +216,7 @@ async function parseInvoice(invoice: Invoice): Promise<Record<string, unknown>> 
 }
 
 // Layers 2-5: Vendor intelligence (Specter + web search + browser + risk assessment)
-async function investigateVendor(invoice: Invoice): Promise<{
+async function investigateVendor(agent: SDKAgent, invoice: Invoice): Promise<{
   riskAssessment: RiskAssessment;
   companyData?: SpecterCompany;
   keyPeople?: SpecterPerson[];
@@ -226,8 +224,6 @@ async function investigateVendor(invoice: Invoice): Promise<{
   webSearchSummary?: string;
 }> {
   emitActivity(invoice.id, 'specter_company_search', `Starting vendor intelligence for "${invoice.vendorName}"...`);
-
-  const agent = await getAgent();
 
   const investigationPrompt = `Investigate this vendor for a first-time payment approval decision.
 
@@ -370,8 +366,9 @@ Return ONLY the JSON object as specified in your instructions. No markdown fence
   }
 }
 
-// Main pipeline: orchestrates all layers
-export async function processInvoice(invoice: Invoice): Promise<ProcessingResult> {
+// Main pipeline: orchestrates all layers. The agent is leased from the
+// AgentPool by the caller and is owned by this run for its full duration.
+export async function processInvoice(agent: SDKAgent, invoice: Invoice): Promise<ProcessingResult> {
   const startTime = Date.now();
 
   log(invoice.id, '========================================');
@@ -389,7 +386,7 @@ export async function processInvoice(invoice: Invoice): Promise<ProcessingResult
   emitActivity(invoice.id, 'stage_marker', '━━ Stage 1/5: Invoice Parsing ━━');
   log(invoice.id, '--- Stage 1/5: Invoice Parsing ---');
   const stage1Start = Date.now();
-  await parseInvoice(invoice);
+  await parseInvoice(agent, invoice);
   const stage1Ms = Date.now() - stage1Start;
   emitActivity(invoice.id, 'stage_marker', `Stage 1 complete — ${(stage1Ms / 1000).toFixed(1)}s`);
 
@@ -397,7 +394,7 @@ export async function processInvoice(invoice: Invoice): Promise<ProcessingResult
   emitActivity(invoice.id, 'stage_marker', '━━ Stage 2/5: Vendor Intelligence ━━');
   log(invoice.id, '--- Stages 2-5: Vendor Intelligence ---');
   emitActivity(invoice.id, 'risk_assessment_started', 'Starting vendor investigation and risk assessment...');
-  const investigation = await investigateVendor(invoice);
+  const investigation = await investigateVendor(agent, invoice);
 
   // Build/update vendor profile
   const existingVendor = store.getVendor(invoice.vendorName);
@@ -436,7 +433,7 @@ export async function processInvoice(invoice: Invoice): Promise<ProcessingResult
   const transaction = executePaymentDecision(invoice, investigation.riskAssessment, processingTimeMs);
 
   // Notification routing — agent selects relevant employees
-  const suggestedRecipients = await routeNotifications(invoice, investigation.riskAssessment, vendorProfile);
+  const suggestedRecipients = await routeNotifications(agent, invoice, investigation.riskAssessment, vendorProfile);
 
   const result: ProcessingResult = {
     invoice: store.getInvoice(invoice.id)!,
@@ -480,6 +477,7 @@ export async function processInvoice(invoice: Invoice): Promise<ProcessingResult
 }
 
 async function routeNotifications(
+  agent: SDKAgent,
   invoice: Invoice,
   riskAssessment: RiskAssessment,
   vendorProfile: VendorProfile
@@ -489,7 +487,6 @@ async function routeNotifications(
 
   const employees: Employee[] = employeesData as Employee[];
 
-  const agent = await getAgent();
   const employeeList = employees.map(e =>
     `- ${e.name} (${e.role}, ${e.department}): ${e.description}`
   ).join('\n');

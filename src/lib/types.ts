@@ -134,7 +134,9 @@ export type ActivityEventType =
   | 'stage_marker'
   | 'pipeline_summary'
   | 'notification_routing'
-  | 'notification_complete';
+  | 'notification_complete'
+  | 'pool_waiting'
+  | 'pool_acquired';
 
 export interface ActivityEvent {
   id: string;
