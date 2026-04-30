@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/store';
 import { processInvoice } from '@/lib/pipeline';
+import { enqueuePipeline } from '@/lib/pipeline-queue';
 import { Invoice } from '@/lib/types';
 import seedInvoices from '@/data/seed-invoices.json';
 
@@ -41,8 +42,8 @@ export async function POST(req: NextRequest) {
 
     store.addInvoice(invoice);
 
-    // Process async — don't await in the response
-    processInvoice(invoice).catch((err) => {
+    // Queue: one Cursor SDK agent — never run overlapping pipelines.
+    enqueuePipeline(() => processInvoice(invoice)).catch((err: unknown) => {
       console.error(`Pipeline error for ${invoice.id}:`, err);
       store.updateInvoice(invoice.id, { status: 'blocked' });
     });
