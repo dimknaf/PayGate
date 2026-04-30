@@ -41,6 +41,9 @@ async function streamAgentResponse(
   const run = await agent.send(prompt, opts);
   let fullText = '';
   let lastToolName = '';
+  let thinkingBuffer = '';
+  let lastThinkingEmit = 0;
+  const THINKING_THROTTLE_MS = 3000;
 
   for await (const event of run.stream()) {
     const msg = event as SDKMessage;
@@ -53,21 +56,37 @@ async function streamAgentResponse(
         }
         break;
 
-      case 'thinking':
-        log(invoiceId, `[thinking] ${msg.text.substring(0, 200)}${msg.text.length > 200 ? '...' : ''}`);
-        emitActivity(invoiceId, 'agent_thinking', `Agent reasoning: ${msg.text.substring(0, 120)}...`);
+      case 'thinking': {
+        thinkingBuffer += msg.text;
+        const now = Date.now();
+        // Throttle thinking emissions — batch into meaningful chunks
+        if (now - lastThinkingEmit > THINKING_THROTTLE_MS && thinkingBuffer.length > 30) {
+          const clean = thinkingBuffer.replace(/\s+/g, ' ').trim();
+          if (clean.length > 10) {
+            log(invoiceId, `[thinking] ${clean.substring(0, 250)}`);
+            // Only emit non-trivial reasoning to the feed
+            const trimmed = clean.length > 150 ? clean.substring(0, 147) + '...' : clean;
+            emitActivity(invoiceId, 'agent_thinking', trimmed);
+          }
+          thinkingBuffer = '';
+          lastThinkingEmit = now;
+        }
         break;
+      }
 
       case 'tool_call':
         if (msg.status === 'running') {
           lastToolName = msg.name;
-          log(invoiceId, `[tool:start] ${msg.name}`, msg.args ? JSON.stringify(msg.args).substring(0, 200) : '');
+          const argsStr = msg.args ? JSON.stringify(msg.args).substring(0, 300) : '';
+          log(invoiceId, `[tool:start] ${msg.name}`, argsStr);
           emitToolActivity(invoiceId, msg.name, 'running', msg.args);
         } else if (msg.status === 'completed') {
-          log(invoiceId, `[tool:done]  ${msg.name}`);
+          const resultPreview = msg.result ? String(typeof msg.result === 'string' ? msg.result : JSON.stringify(msg.result)).substring(0, 200) : '';
+          log(invoiceId, `[tool:done]  ${msg.name}${resultPreview ? ' → ' + resultPreview : ''}`);
           emitToolActivity(invoiceId, msg.name, 'completed', undefined, msg.result);
         } else if (msg.status === 'error') {
           log(invoiceId, `[tool:error] ${msg.name}`, msg.result);
+          emitActivity(invoiceId, 'error', `Tool ${msg.name} failed`);
         }
         break;
 
@@ -75,9 +94,6 @@ async function streamAgentResponse(
         for (const block of msg.message.content) {
           if (block.type === 'text') {
             fullText += block.text;
-            if (block.text.length > 0 && block.text.length < 300) {
-              log(invoiceId, `[text] ${block.text.substring(0, 200)}`);
-            }
           }
         }
         break;
@@ -85,9 +101,16 @@ async function streamAgentResponse(
       case 'task':
         if (msg.text) {
           log(invoiceId, `[task] ${msg.text}`);
+          emitActivity(invoiceId, 'agent_thinking', `Subagent: ${msg.text}`);
         }
         break;
     }
+  }
+
+  // Flush remaining thinking buffer
+  if (thinkingBuffer.trim().length > 10) {
+    const clean = thinkingBuffer.replace(/\s+/g, ' ').trim();
+    log(invoiceId, `[thinking:final] ${clean.substring(0, 250)}`);
   }
 
   log(invoiceId, `<<< Agent response complete (${label}). ${fullText.length} chars. Last tool: ${lastToolName}`);
@@ -95,60 +118,70 @@ async function streamAgentResponse(
 }
 
 function emitToolActivity(invoiceId: string, toolName: string, status: string, args?: unknown, result?: unknown) {
-  const toolLabels: Record<string, { running: string; completed: string; type: string }> = {
-    'web_search': {
-      running: 'Searching the web...',
-      completed: 'Web search complete',
-      type: 'web_search_started',
-    },
-    'browser_navigate': {
-      running: 'Visiting website...',
-      completed: 'Website visit complete',
-      type: 'browser_visit_started',
-    },
-    'browser_click': {
-      running: 'Interacting with website...',
-      completed: 'Interaction complete',
-      type: 'browser_visit_started',
-    },
-    'browser_screenshot': {
-      running: 'Taking screenshot of website...',
-      completed: 'Screenshot captured',
-      type: 'browser_visit_started',
-    },
-    'mcp_specter_search_companies': {
-      running: 'Querying Specter for company data...',
-      completed: 'Specter company search complete',
-      type: 'specter_company_search',
-    },
-    'mcp_specter_get_company': {
-      running: 'Fetching full Specter company profile...',
-      completed: 'Company profile loaded',
-      type: 'specter_company_search',
-    },
-    'mcp_specter_get_company_people': {
-      running: 'Looking up key people on Specter...',
-      completed: 'People data loaded',
-      type: 'specter_people_search',
-    },
-  };
+  const name = toolName.toLowerCase();
 
-  // Try to match tool name (SDK may prefix or normalize names)
-  let label = toolLabels[toolName];
-  if (!label) {
-    for (const [key, val] of Object.entries(toolLabels)) {
-      if (toolName.toLowerCase().includes(key.replace('mcp_specter_', '').replace('browser_', '').replace('web_', ''))) {
-        label = val;
-        break;
-      }
+  // Task / subagent — the most important one to make descriptive
+  if (name === 'task' || name === 'create_task') {
+    if (status === 'running') {
+      const argsObj = args as Record<string, unknown> | undefined;
+      const desc = argsObj?.description || argsObj?.prompt || '';
+      const descStr = String(desc).substring(0, 120);
+      emitActivity(invoiceId, 'agent_thinking',
+        descStr ? `Spawning subagent: ${descStr}` : 'Spawning specialized subagent...'
+      );
+    } else {
+      emitActivity(invoiceId, 'agent_thinking', 'Subagent completed analysis');
     }
+    return;
   }
 
-  if (label) {
-    const activityType = status === 'running' ? label.type : label.type.replace('_started', '_complete').replace('_search', '_found') as import('./types').ActivityEventType;
-    emitActivity(invoiceId, activityType, status === 'running' ? label.running : label.completed);
-  } else {
-    emitActivity(invoiceId, 'agent_thinking', `${status === 'running' ? 'Using' : 'Finished'} tool: ${toolName}`);
+  // Web search
+  if (name.includes('search') || name.includes('web_search')) {
+    const query = args ? String((args as Record<string, unknown>).query || '').substring(0, 80) : '';
+    if (status === 'running') {
+      emitActivity(invoiceId, 'web_search_started', query ? `Searching the web: "${query}"` : 'Searching the web...');
+    } else {
+      emitActivity(invoiceId, 'web_search_complete', 'Web search results received');
+    }
+    return;
+  }
+
+  // Browser tools
+  if (name.includes('browser') || name.includes('navigate') || name.includes('screenshot')) {
+    const url = args ? String((args as Record<string, unknown>).url || '').substring(0, 80) : '';
+    if (status === 'running') {
+      if (name.includes('screenshot')) {
+        emitActivity(invoiceId, 'browser_visit_started', 'Taking screenshot of website...');
+      } else {
+        emitActivity(invoiceId, 'browser_visit_started', url ? `Visiting ${url}` : 'Navigating to website...');
+      }
+    } else {
+      emitActivity(invoiceId, 'browser_visit_complete', 'Website inspection complete');
+    }
+    return;
+  }
+
+  // MCP / Specter tools
+  if (name.includes('specter') || name.includes('mcp')) {
+    if (name.includes('people')) {
+      emitActivity(invoiceId, status === 'running' ? 'specter_people_search' : 'specter_people_found',
+        status === 'running' ? 'Looking up key people via Specter...' : 'Key people data loaded');
+    } else {
+      emitActivity(invoiceId, status === 'running' ? 'specter_company_search' : 'specter_company_found',
+        status === 'running' ? 'Querying Specter for company intelligence...' : 'Specter company data loaded');
+    }
+    return;
+  }
+
+  // File read / semantic search (agent exploring files)
+  if (name.includes('read') || name.includes('file') || name.includes('semantic')) {
+    return; // suppress noisy file operations
+  }
+
+  // Generic fallback — show it but make it readable
+  if (status === 'running') {
+    const readable = toolName.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
+    emitActivity(invoiceId, 'agent_thinking', `Running: ${readable}`);
   }
 }
 
