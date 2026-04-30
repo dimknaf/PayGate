@@ -130,7 +130,11 @@ export type ActivityEventType =
   | 'human_approved'
   | 'human_rejected'
   | 'error'
-  | 'agent_thinking';
+  | 'agent_thinking'
+  | 'stage_marker'
+  | 'pipeline_summary'
+  | 'notification_routing'
+  | 'notification_complete';
 
 export interface ActivityEvent {
   id: string;

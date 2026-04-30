@@ -288,6 +288,17 @@ After each step:
 | 3 | `src/app/globals.css`, `src/components/Dashboard.tsx`, `src/components/StatusBadge.tsx`, `src/components/RiskGauge.tsx`, `src/components/ActivityFeed.tsx`, `src/components/InvoiceQueue.tsx`, `src/components/HistoryTable.tsx`, `src/components/VendorProfile.tsx`, `src/components/RiskBrief.tsx`, `src/components/PaymentActions.tsx` | — |
 | 4 | `README.md` | — |
 
+## Step 5: Name & Logo (NEW)
+
+**What**: Pick a memorable product name and generate a logo/favicon. Do this last.
+
+**Name**: **PayGate** — short, punchy, implies a gate that payments pass through.
+**Logo**: Gate icon — modern, minimal, works as favicon.
+
+**Changes**: Update the app title in `layout.tsx`, the header in `Dashboard.tsx`, the README title/references, and generate a gate SVG favicon. Rename all user-facing references from "Supplier Payment Agent" to "PayGate".
+
+---
+
 ## Rules
 
 1. **DO NOT** change the agent setup (`src/lib/agent.ts`) — it works, don't touch it.

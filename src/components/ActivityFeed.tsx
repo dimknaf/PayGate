@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   FileText, Search, Building2, Users, Globe, Eye,
   ShieldCheck, ShieldAlert, ShieldX, CreditCard,
-  AlertTriangle, Brain, Zap, Radio
+  AlertTriangle, Brain, Zap, Radio, Layers, CheckCircle2
 } from 'lucide-react';
 import { ActivityEvent } from '@/lib/types';
 
@@ -31,6 +31,10 @@ const eventIcons: Record<string, React.ReactNode> = {
   human_rejected: <ShieldX className="w-3.5 h-3.5 text-red-400" />,
   error: <AlertTriangle className="w-3.5 h-3.5 text-red-400" />,
   agent_thinking: <Brain className="w-3.5 h-3.5 text-purple-400" />,
+  stage_marker: <Layers className="w-3.5 h-3.5 text-blue-300" />,
+  pipeline_summary: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />,
+  notification_routing: <Users className="w-3.5 h-3.5 text-blue-400" />,
+  notification_complete: <Users className="w-3.5 h-3.5 text-emerald-400" />,
 };
 
 export function ActivityFeed() {
@@ -126,17 +130,45 @@ export function ActivityFeed() {
             <p className="text-xs">Process an invoice to see the agent work</p>
           </div>
         )}
-        {events.map((event) => (
-          <div key={event.id} className="activity-line flex items-start gap-2 py-1 px-2 rounded hover:bg-[var(--bg-tertiary)] transition-colors">
-            <span className="text-[10px] font-mono text-[var(--text-secondary)] mt-0.5 shrink-0 w-16">
-              {formatTime(event.timestamp)}
-            </span>
-            <span className="mt-0.5 shrink-0">
-              {eventIcons[event.type] || <Zap className="w-3.5 h-3.5 text-gray-400" />}
-            </span>
-            <span className="text-xs text-[var(--text-primary)] leading-relaxed break-words">{event.message}</span>
-          </div>
-        ))}
+        {events.map((event) => {
+          if (event.type === 'stage_marker') {
+            return (
+              <div key={event.id} className="activity-line flex items-center gap-2 py-1.5 px-2 my-1">
+                <span className="text-[10px] font-mono text-[var(--text-secondary)] shrink-0 w-16 tabular-nums">
+                  {formatTime(event.timestamp)}
+                </span>
+                <span className="shrink-0">{eventIcons.stage_marker}</span>
+                <span className="text-xs font-semibold text-blue-300 tracking-wide">{event.message}</span>
+              </div>
+            );
+          }
+
+          if (event.type === 'pipeline_summary') {
+            return (
+              <div key={event.id} className="activity-line mx-1 my-2 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+                <div className="flex items-center gap-2 mb-1">
+                  {eventIcons.pipeline_summary}
+                  <span className="text-xs font-semibold text-emerald-400">Pipeline Complete</span>
+                </div>
+                <p className="text-xs text-[var(--text-primary)] leading-relaxed">{event.message}</p>
+              </div>
+            );
+          }
+
+          const isThinking = event.type === 'agent_thinking';
+
+          return (
+            <div key={event.id} className={`activity-line flex items-start gap-2 py-1 px-2 rounded hover:bg-[var(--bg-tertiary)] transition-colors ${isThinking ? 'opacity-60' : ''}`}>
+              <span className="text-[10px] font-mono text-[var(--text-secondary)] mt-0.5 shrink-0 w-16 tabular-nums">
+                {formatTime(event.timestamp)}
+              </span>
+              <span className="mt-0.5 shrink-0">
+                {eventIcons[event.type] || <Zap className="w-3.5 h-3.5 text-gray-400" />}
+              </span>
+              <span className={`text-xs leading-relaxed break-words ${isThinking ? 'text-[var(--text-secondary)] italic' : 'text-[var(--text-primary)]'}`}>{event.message}</span>
+            </div>
+          );
+        })}
       </div>
 
       {events.length > 0 && (

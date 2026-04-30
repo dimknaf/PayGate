@@ -254,6 +254,9 @@ Return ONLY the JSON object as specified in your instructions. No markdown fence
     log(invoice.id, 'Extracted JSON length:', jsonStr.length, 'Preview:', jsonStr.substring(0, 200));
     const result = JSON.parse(jsonStr);
 
+    // Emit stage markers for each data layer that returned
+    emitActivity(invoice.id, 'stage_marker', '━━ Stage 3/5: People & Web Search ━━');
+
     // Emit activity events based on findings
     if (result.companyData?.name) {
       const msg = `Specter: Found ${result.companyData.name}${result.companyData.foundedYear ? ` — Founded ${result.companyData.foundedYear}` : ''}${result.companyData.employeeCount ? `, ${result.companyData.employeeCount} employees` : ''}${result.companyData.growthStage ? `, ${result.companyData.growthStage}` : ''}`;
@@ -281,11 +284,15 @@ Return ONLY the JSON object as specified in your instructions. No markdown fence
       );
     }
 
+    emitActivity(invoice.id, 'stage_marker', '━━ Stage 4/5: Website Verification ━━');
+
     if (result.websiteAssessment) {
       const msg = `Website ${result.websiteAssessment.url}: ${result.websiteAssessment.looksLegitimate ? 'Looks legitimate' : 'Concerns identified'} — ${(result.websiteAssessment.description || '').substring(0, 100)}`;
       log(invoice.id, msg);
       emitActivity(invoice.id, 'browser_visit_complete', msg, { website: result.websiteAssessment });
     }
+
+    emitActivity(invoice.id, 'stage_marker', '━━ Stage 5/5: Risk Assessment ━━');
 
     const riskMsg = `Risk: ${result.riskLevel} (score: ${result.riskScore?.toFixed(2)}) — ${result.recommendation?.replace(/_/g, ' ')}`;
     log(invoice.id, '*** ' + riskMsg);
@@ -375,12 +382,17 @@ export async function processInvoice(invoice: Invoice): Promise<ProcessingResult
 
   store.updateInvoice(invoice.id, { status: 'processing' });
 
-  // Layer 1: Parse
-  log(invoice.id, '--- Layer 1: Invoice Parsing ---');
+  // Stage 1: Parse
+  emitActivity(invoice.id, 'stage_marker', '━━ Stage 1/5: Invoice Parsing ━━');
+  log(invoice.id, '--- Stage 1/5: Invoice Parsing ---');
+  const stage1Start = Date.now();
   await parseInvoice(invoice);
+  const stage1Ms = Date.now() - stage1Start;
+  emitActivity(invoice.id, 'stage_marker', `Stage 1 complete — ${(stage1Ms / 1000).toFixed(1)}s`);
 
-  // Layers 2-5: Vendor intelligence
-  log(invoice.id, '--- Layers 2-5: Vendor Intelligence ---');
+  // Stages 2-5: Vendor intelligence
+  emitActivity(invoice.id, 'stage_marker', '━━ Stage 2/5: Vendor Intelligence ━━');
+  log(invoice.id, '--- Stages 2-5: Vendor Intelligence ---');
   emitActivity(invoice.id, 'risk_assessment_started', 'Starting vendor investigation and risk assessment...');
   const investigation = await investigateVendor(invoice);
 
@@ -433,6 +445,29 @@ export async function processInvoice(invoice: Invoice): Promise<ProcessingResult
   log(invoice.id, '========================================');
   log(invoice.id, `PIPELINE COMPLETE in ${(processingTimeMs / 1000).toFixed(1)}s — ${investigation.riskAssessment.riskLevel} risk`);
   log(invoice.id, '========================================');
+
+  // Build summary facts
+  const summaryParts: string[] = [invoice.vendorName];
+  if (investigation.companyData?.growthStage) summaryParts.push(investigation.companyData.growthStage);
+  if (investigation.companyData?.employeeCount) summaryParts.push(`${investigation.companyData.employeeCount} employees`);
+  if (investigation.companyData?.totalFundingUsd) summaryParts.push(`$${(investigation.companyData.totalFundingUsd / 1_000_000).toFixed(0)}M raised`);
+  if (investigation.keyPeople?.length) summaryParts.push(`${investigation.keyPeople.length} key people verified`);
+  if (investigation.websiteCheck?.looksLegitimate !== undefined) {
+    summaryParts.push(investigation.websiteCheck.looksLegitimate ? 'website legitimate' : 'website concerns');
+  }
+  const outcomeLabel = investigation.riskAssessment.recommendation.replace(/_/g, ' ').toUpperCase();
+  summaryParts.push(`→ ${investigation.riskAssessment.riskLevel} risk`);
+  summaryParts.push(`${outcomeLabel} in ${(processingTimeMs / 1000).toFixed(1)}s`);
+
+  emitActivity(invoice.id, 'pipeline_summary',
+    summaryParts.join(' · '),
+    {
+      processingTimeMs,
+      riskLevel: investigation.riskAssessment.riskLevel,
+      recommendation: investigation.riskAssessment.recommendation,
+      vendorName: invoice.vendorName,
+    }
+  );
 
   return result;
 }
