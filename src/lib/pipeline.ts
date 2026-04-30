@@ -86,7 +86,7 @@ async function streamAgentResponse(
         } else if (msg.status === 'completed') {
           const resultPreview = msg.result ? String(typeof msg.result === 'string' ? msg.result : JSON.stringify(msg.result)).substring(0, 200) : '';
           log(invoiceId, `[tool:done]  ${msg.name}${resultPreview ? ' → ' + resultPreview : ''}`);
-          emitToolActivity(invoiceId, msg.name, 'completed', undefined, msg.result);
+          emitToolActivity(invoiceId, msg.name, 'completed', undefined);
         } else if (msg.status === 'error') {
           log(invoiceId, `[tool:error] ${msg.name}`, msg.result);
           emitActivity(invoiceId, 'error', `Tool ${msg.name} failed`);
@@ -120,7 +120,7 @@ async function streamAgentResponse(
   return fullText;
 }
 
-function emitToolActivity(invoiceId: string, toolName: string, status: string, args?: unknown, result?: unknown) {
+function emitToolActivity(invoiceId: string, toolName: string, status: string, args?: unknown) {
   const name = toolName.toLowerCase();
 
   // Task / subagent — the most important one to make descriptive
@@ -204,7 +204,7 @@ async function parseInvoice(invoice: Invoice): Promise<Record<string, unknown>> 
     );
     log(invoice.id, 'Invoice parsed successfully:', JSON.stringify(parsed).substring(0, 200));
     return parsed;
-  } catch (e) {
+  } catch {
     log(invoice.id, 'Parse failed, using defaults. Raw:', response.substring(0, 300));
     emitActivity(invoice.id, 'parsing_complete',
       `Parsed invoice from ${invoice.vendorName} for ${invoice.currency} ${invoice.amount}`

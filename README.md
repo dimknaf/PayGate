@@ -207,18 +207,20 @@ The app ships with 5 pre-loaded invoices designed to test different risk scenari
 
 ---
 
-## Hackathon Scoring Coverage (10/10)
+## Hackathon Coverage
 
-| Criterion | Points | How PayGate Covers It |
-|-----------|--------|----------------------|
-| **Concrete Workflow Value** | 2 | Replaces 30–60 min AP analyst workflow end-to-end — invoice to payment decision |
-| **Track Fit** | 2 | Core action is a payment decision; agent moves money on approval |
-| **Human-in-the-Loop** | 1 | Three-tier system (auto/flag/block), full risk brief visible, one-click approve/reject |
-| **Technical Execution** | 1 | Clean architecture, TypeScript, SSE streaming, error handling, HMR persistence |
-| **Demo Clarity** | 1 | 5 invoices, 3 distinct outcomes, live activity feed, 90-second demo narrative |
-| **Best use of Cursor** | +1 | SDK programmatic agents, 2 subagents with multi-model routing, web + browser tools |
-| **Best use of Specter** | +1 | Company data + people data + growth signals drive the entire risk decision |
-| **Best use of LLM models** | +1 | Fast model for parsing (composer-2), reasoning model for risk assessment (claude-sonnet-4-6) |
+PayGate covers every requirement of the Cursor × Briefcase Hackathon brief:
+
+| Criterion | How PayGate Covers It |
+|-----------|----------------------|
+| **Concrete Workflow Value** | Replaces 30–60 min AP analyst workflow end-to-end — invoice to payment decision |
+| **Track Fit** | Core action is a payment decision; agent moves money on approval |
+| **Human-in-the-Loop** | Three-tier system (auto/flag/block), full risk brief visible, one-click approve/reject |
+| **Technical Execution** | Clean architecture, TypeScript, SSE streaming, error handling, HMR persistence |
+| **Demo Clarity** | 5 invoices, 3 distinct outcomes, live activity feed, 90-second demo narrative |
+| **Best use of Cursor** | SDK programmatic agents, 2 subagents with multi-model routing, web + browser tools |
+| **Best use of Specter** | Company data + people data + growth signals drive the entire risk decision |
+| **Best use of LLM models** | Fast model for parsing (composer-2), reasoning model for risk assessment (claude-sonnet-4-6) |
 
 ---
 
