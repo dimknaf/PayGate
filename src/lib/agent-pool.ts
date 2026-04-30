@@ -235,12 +235,32 @@ export class AgentPool {
 
 function defaultAgentFactory(): AgentFactory {
   return async () => {
+    const specterKey = process.env.SPECTER_API_KEY;
+    if (!specterKey) {
+      console.warn(
+        '[agent-pool] SPECTER_API_KEY is missing — Specter MCP calls will be unauthenticated and the agent will fall back on hallucinated company data.'
+      );
+    }
+
     return Agent.create({
       apiKey: process.env.CURSOR_API_KEY!,
       model: { id: 'composer-2' },
       local: {
         cwd: process.cwd(),
         settingSources: ['project'],
+      },
+      // Register Specter MCP programmatically so the Authorization header is
+      // injected from process.env at runtime. .cursor/mcp.json does not
+      // reliably interpolate env vars when the SDK is launched outside the
+      // Cursor IDE, which silently leaves the request unauthenticated.
+      mcpServers: {
+        specter: {
+          type: 'http',
+          url: 'https://mcp.tryspecter.com/mcp',
+          headers: specterKey
+            ? { Authorization: `Bearer ${specterKey}` }
+            : {},
+        },
       },
       agents: {
         'invoice-parser': {
