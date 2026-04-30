@@ -71,7 +71,14 @@ export function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-md bg-[var(--bg-tertiary)] border border-[var(--border)] flex items-center justify-center">
-              <Shield className="w-5 h-5 text-blue-400" />
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="3.5" height="16" rx="1" fill="#2563eb"/>
+                <rect x="14.5" y="2" width="3.5" height="16" rx="1" fill="#2563eb"/>
+                <rect x="2" y="2" width="16" height="3.5" rx="1" fill="#2563eb"/>
+                <rect x="7" y="7" width="1.2" height="11" rx="0.6" fill="#2563eb" opacity="0.45"/>
+                <rect x="9.4" y="7" width="1.2" height="11" rx="0.6" fill="#2563eb" opacity="0.45"/>
+                <rect x="11.8" y="7" width="1.2" height="11" rx="0.6" fill="#2563eb" opacity="0.45"/>
+              </svg>
             </div>
             <div>
               <h1 className="text-lg font-bold tracking-tight">PayGate</h1>
