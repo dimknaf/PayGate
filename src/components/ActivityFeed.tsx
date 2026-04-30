@@ -5,7 +5,7 @@ import {
   FileText, Search, Building2, Users, Globe, Eye,
   ShieldCheck, ShieldAlert, ShieldX, CreditCard,
   AlertTriangle, Brain, Zap, Radio, Layers, CheckCircle2,
-  Hourglass, KeyRound
+  Hourglass, KeyRound, Wrench, ListTree
 } from 'lucide-react';
 import { ActivityEvent } from '@/lib/types';
 
@@ -38,6 +38,8 @@ const eventIcons: Record<string, React.ReactNode> = {
   notification_complete: <Users className="w-3.5 h-3.5 text-emerald-400" />,
   pool_waiting: <Hourglass className="w-3.5 h-3.5 text-amber-400" />,
   pool_acquired: <KeyRound className="w-3.5 h-3.5 text-emerald-400" />,
+  mcp_tools_loaded: <ListTree className="w-3.5 h-3.5 text-blue-300" />,
+  subagent_tool_call: <Wrench className="w-3.5 h-3.5 text-purple-400" />,
 };
 
 export function ActivityFeed() {

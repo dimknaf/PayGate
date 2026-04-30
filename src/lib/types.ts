@@ -136,7 +136,9 @@ export type ActivityEventType =
   | 'notification_routing'
   | 'notification_complete'
   | 'pool_waiting'
-  | 'pool_acquired';
+  | 'pool_acquired'
+  | 'mcp_tools_loaded'
+  | 'subagent_tool_call';
 
 export interface ActivityEvent {
   id: string;

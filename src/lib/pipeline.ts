@@ -58,6 +58,29 @@ async function streamAgentResponse(
         }
         break;
 
+      case 'system': {
+        const tools = msg.tools ?? [];
+        const mcpTools = tools.filter((t) => /mcp[_-]|specter/i.test(t));
+        const webTools = tools.filter((t) => /web[_-]?search|^search$/i.test(t));
+        const browserTools = tools.filter((t) => /browser|navigate|screenshot/i.test(t));
+        log(
+          invoiceId,
+          `[system] ${tools.length} tools available — MCP:${mcpTools.length} web:${webTools.length} browser:${browserTools.length}`
+        );
+        if (tools.length) log(invoiceId, `[system]   all: ${tools.join(', ')}`);
+        log(
+          invoiceId,
+          `[system]   MCP tools: ${mcpTools.length ? mcpTools.join(', ') : 'NONE — Specter MCP is NOT connected!'}`
+        );
+        emitActivity(
+          invoiceId,
+          'mcp_tools_loaded',
+          `Agent loaded ${tools.length} tools (MCP:${mcpTools.length}, web:${webTools.length}, browser:${browserTools.length})`,
+          { tools, mcpTools, webTools, browserTools }
+        );
+        break;
+      }
+
       case 'thinking': {
         thinkingBuffer += msg.text;
         const now = Date.now();
@@ -86,6 +109,17 @@ async function streamAgentResponse(
           const resultPreview = msg.result ? String(typeof msg.result === 'string' ? msg.result : JSON.stringify(msg.result)).substring(0, 200) : '';
           log(invoiceId, `[tool:done]  ${msg.name}${resultPreview ? ' → ' + resultPreview : ''}`);
           emitToolActivity(invoiceId, msg.name, 'completed', undefined);
+          if (msg.name === 'task') {
+            const stats = walkSubagentToolCalls(invoiceId, msg.result);
+            const summary = formatStats(stats);
+            log(invoiceId, `[subagent] tool usage — ${summary}`);
+            emitActivity(
+              invoiceId,
+              'subagent_tool_call',
+              `Subagent tool usage: ${summary}`,
+              { stats }
+            );
+          }
         } else if (msg.status === 'error') {
           log(invoiceId, `[tool:error] ${msg.name}`, msg.result);
           emitActivity(invoiceId, 'error', `Tool ${msg.name} failed`);
@@ -117,6 +151,77 @@ async function streamAgentResponse(
 
   log(invoiceId, `<<< Agent response complete (${label}). ${fullText.length} chars. Last tool: ${lastToolName}`);
   return fullText;
+}
+
+function preview(value: unknown, max = 200): string {
+  if (value === undefined || value === null) return '';
+  const str = typeof value === 'string' ? value : JSON.stringify(value);
+  if (!str) return '';
+  return str.length > max ? str.substring(0, max) + '...' : str;
+}
+
+function formatStats(stats: Record<string, number>): string {
+  const entries = Object.entries(stats);
+  if (!entries.length) return 'NO TOOL CALLS';
+  return entries
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => `${name}:${count}`)
+    .join(', ');
+}
+
+/**
+ * Walk a `task` tool's result and log every nested subagent tool call. The
+ * subagent's tool calls (Specter MCP, web_search, browser_*) are nested
+ * inside `result.value.conversationSteps` and never reach the parent stream
+ * directly, so without walking them we cannot tell whether the subagent
+ * actually used its tools or just hallucinated answers.
+ */
+function walkSubagentToolCalls(invoiceId: string, taskResult: unknown): Record<string, number> {
+  const stats: Record<string, number> = {};
+  const steps = (taskResult as { value?: { conversationSteps?: unknown[] } } | undefined)
+    ?.value?.conversationSteps;
+  if (!Array.isArray(steps)) {
+    log(invoiceId, '[subagent] no conversationSteps in task result — agent may not have used any tools');
+    return stats;
+  }
+
+  for (const rawStep of steps) {
+    const step = rawStep as { type?: string; message?: Record<string, unknown> } | null;
+    if (!step || step.type !== 'toolCall') continue;
+    const m = (step.message ?? {}) as Record<string, unknown>;
+    const name = String(m.name ?? m.type ?? 'unknown');
+    const status = String(m.status ?? '?');
+    stats[name] = (stats[name] ?? 0) + 1;
+    log(
+      invoiceId,
+      `  [subtool] ${name} (${status}) args=${preview(m.args, 160)} → ${preview(m.result, 160)}`
+    );
+
+    if (/specter|mcp/i.test(name)) {
+      emitActivity(invoiceId, 'subagent_tool_call', `Specter MCP: ${name} (${status})`, {
+        name,
+        status,
+        args: m.args,
+      });
+    } else if (/web[_-]?search/i.test(name)) {
+      const q = (m.args as { query?: string } | undefined)?.query;
+      emitActivity(
+        invoiceId,
+        'subagent_tool_call',
+        q ? `Web search: "${preview(q, 60)}"` : `Web search executed (${status})`,
+        { name, status }
+      );
+    } else if (/browser|navigate|screenshot/i.test(name)) {
+      const url = (m.args as { url?: string } | undefined)?.url;
+      emitActivity(
+        invoiceId,
+        'subagent_tool_call',
+        url ? `Browser: ${name} → ${preview(url, 60)}` : `Browser tool: ${name} (${status})`,
+        { name, status }
+      );
+    }
+  }
+  return stats;
 }
 
 function emitToolActivity(invoiceId: string, toolName: string, status: string, args?: unknown) {

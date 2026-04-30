@@ -236,11 +236,16 @@ export class AgentPool {
 function defaultAgentFactory(): AgentFactory {
   return async () => {
     const specterKey = process.env.SPECTER_API_KEY;
+    const masked = specterKey
+      ? `${specterKey.slice(0, 4)}...${specterKey.slice(-4)} (len=${specterKey.length})`
+      : 'MISSING';
+    console.log(`[agent-pool] Creating agent. SPECTER_API_KEY=${masked}`);
     if (!specterKey) {
       console.warn(
         '[agent-pool] SPECTER_API_KEY is missing — Specter MCP calls will be unauthenticated and the agent will fall back on hallucinated company data.'
       );
     }
+    console.log('[agent-pool] Registering MCP server: specter @ https://mcp.tryspecter.com/mcp');
 
     return Agent.create({
       apiKey: process.env.CURSOR_API_KEY!,
