@@ -33,7 +33,7 @@ export function HistoryTable({
   });
 
   return (
-    <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden">
+    <div className="bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)] overflow-hidden">
       <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <h3 className="font-semibold text-sm">Processing History</h3>
         <div className="flex items-center gap-2">
@@ -74,26 +74,26 @@ export function HistoryTable({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-[var(--text-secondary)] border-b border-[var(--border)]">
-                <th className="text-left p-3 font-medium">Invoice</th>
-                <th className="text-left p-3 font-medium">Vendor</th>
-                <th className="text-right p-3 font-medium">Amount</th>
-                <th className="text-center p-3 font-medium">Risk</th>
-                <th className="text-center p-3 font-medium">Status</th>
-                <th className="text-center p-3 font-medium">Decided By</th>
-                <th className="text-right p-3 font-medium">Time</th>
+              <tr className="text-xs text-[var(--text-secondary)] border-b border-[var(--border)] bg-[var(--bg-tertiary)]">
+                <th className="text-left p-3 font-semibold tracking-wide uppercase">Invoice</th>
+                <th className="text-left p-3 font-semibold tracking-wide uppercase">Vendor</th>
+                <th className="text-right p-3 font-semibold tracking-wide uppercase">Amount</th>
+                <th className="text-center p-3 font-semibold tracking-wide uppercase">Risk</th>
+                <th className="text-center p-3 font-semibold tracking-wide uppercase">Status</th>
+                <th className="text-center p-3 font-semibold tracking-wide uppercase">Decided By</th>
+                <th className="text-right p-3 font-semibold tracking-wide uppercase">Time</th>
               </tr>
             </thead>
             <tbody>
-              {sorted.map((tx) => (
+              {sorted.map((tx, idx) => (
                 <tr
                   key={tx.id}
                   onClick={() => onSelectInvoice(tx.invoiceId)}
-                  className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-tertiary)] cursor-pointer transition-colors"
+                  className={`border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-tertiary)] cursor-pointer transition-colors ${idx % 2 === 1 ? 'bg-[var(--bg-primary)]/30' : ''}`}
                 >
                   <td className="p-3 font-mono text-xs">{tx.invoiceId}</td>
                   <td className="p-3 font-medium">{tx.vendorName}</td>
-                  <td className="p-3 text-right font-mono font-bold">
+                  <td className="p-3 text-right font-mono font-bold tabular-nums">
                     {tx.currency === 'GBP' ? '£' : '$'}{tx.amount.toLocaleString()}
                   </td>
                   <td className="p-3 text-center">
@@ -121,7 +121,7 @@ export function HistoryTable({
                       {tx.approvedBy === 'agent' ? 'AI Agent' : 'Human'}
                     </span>
                   </td>
-                  <td className="p-3 text-right text-xs text-[var(--text-secondary)]">
+                  <td className="p-3 text-right text-xs text-[var(--text-secondary)] tabular-nums">
                     {(tx.processingTimeMs / 1000).toFixed(1)}s
                   </td>
                 </tr>

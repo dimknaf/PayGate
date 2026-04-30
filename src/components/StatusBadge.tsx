@@ -45,7 +45,7 @@ export function StatusBadge({ status }: { status: InvoiceStatus }) {
   const c = config[status];
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${c.className}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${c.className}`}>
       {c.icon}
       {c.label}
     </span>
@@ -71,7 +71,7 @@ export function RiskBadge({ level }: { level: RiskLevel }) {
   const c = config[level];
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${c.className}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${c.className}`}>
       {c.icon}
       {level} Risk
     </span>

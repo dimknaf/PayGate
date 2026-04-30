@@ -16,12 +16,12 @@ export function RiskGauge({ score, size = 'md' }: { score: number; size?: 'sm' |
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center text-xs">
-        <span className="text-[var(--text-secondary)]">Risk Score</span>
-        <span className="font-mono font-bold" style={{ color }}>
+        <span className="text-[var(--text-secondary)] tracking-wide">Risk Score</span>
+        <span className="font-mono font-bold tabular-nums" style={{ color }}>
           {percentage}%
         </span>
       </div>
-      <div className={`w-full ${sizeClasses[size]} bg-[var(--bg-primary)] rounded-full overflow-hidden`}>
+      <div className={`w-full ${sizeClasses[size]} bg-[var(--bg-primary)] rounded-full overflow-hidden border border-[var(--border)]`}>
         <div
           className={`${sizeClasses[size]} rounded-full gauge-fill transition-all duration-500`}
           style={{ width: `${percentage}%`, backgroundColor: color }}

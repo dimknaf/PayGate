@@ -67,22 +67,22 @@ export function Dashboard() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+      <header className="border-b border-[var(--border)] border-t-2 border-t-blue-600 bg-[var(--bg-secondary)]">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-md bg-[var(--bg-tertiary)] border border-[var(--border)] flex items-center justify-center">
+              <Shield className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight">Supplier Payment Agent</h1>
-              <p className="text-xs text-[var(--text-secondary)]">AI-Powered Vendor Due Diligence & First Payment Approval</p>
+              <h1 className="text-lg font-bold tracking-tight">PayGate</h1>
+              <p className="text-xs text-[var(--text-secondary)] tracking-wide">Vendor Due Diligence & Payment Approval</p>
             </div>
           </div>
           <nav className="flex items-center gap-1">
             <button
               onClick={() => { setView('dashboard'); setSelectedInvoice(null); }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                view === 'dashboard' ? 'bg-blue-600 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]'
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                view === 'dashboard' ? 'bg-blue-600/90 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]'
               }`}
             >
               <LayoutDashboard className="w-4 h-4" />
@@ -90,8 +90,8 @@ export function Dashboard() {
             </button>
             <button
               onClick={() => { setView('history'); setSelectedInvoice(null); }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                view === 'history' ? 'bg-blue-600 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]'
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                view === 'history' ? 'bg-blue-600/90 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]'
               }`}
             >
               <HistoryIcon className="w-4 h-4" />
@@ -165,7 +165,7 @@ export function Dashboard() {
       {/* Footer */}
       <footer className="border-t border-[var(--border)] mt-auto">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between text-xs text-[var(--text-secondary)]">
-          <span>Cursor × Briefcase Hackathon 2026 — Track 1: Money Movement</span>
+          <span>PayGate — Cursor × Briefcase Hackathon 2026</span>
           <span>Powered by Cursor SDK + Specter API</span>
         </div>
       </footer>
@@ -185,21 +185,21 @@ function StatCard({
   color: string;
 }) {
   const colors: Record<string, string> = {
-    blue: 'from-blue-500/10 to-blue-500/5 border-blue-500/20',
-    green: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20',
-    amber: 'from-amber-500/10 to-amber-500/5 border-amber-500/20',
-    red: 'from-red-500/10 to-red-500/5 border-red-500/20',
-    purple: 'from-purple-500/10 to-purple-500/5 border-purple-500/20',
-    cyan: 'from-cyan-500/10 to-cyan-500/5 border-cyan-500/20',
+    blue: 'from-blue-600/8 to-blue-600/3 border-blue-600/15',
+    green: 'from-emerald-600/8 to-emerald-600/3 border-emerald-600/15',
+    amber: 'from-amber-600/8 to-amber-600/3 border-amber-600/15',
+    red: 'from-red-600/8 to-red-600/3 border-red-600/15',
+    purple: 'from-purple-600/8 to-purple-600/3 border-purple-600/15',
+    cyan: 'from-cyan-600/8 to-cyan-600/3 border-cyan-600/15',
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colors[color]} border rounded-xl p-3`}>
+    <div className={`bg-gradient-to-br ${colors[color]} border rounded-lg p-3`}>
       <div className="flex items-center gap-1.5 text-[var(--text-secondary)] mb-1">
         {icon}
-        <span className="text-xs">{label}</span>
+        <span className="text-xs tracking-wide">{label}</span>
       </div>
-      <p className="text-xl font-bold">{value}</p>
+      <p className="text-xl font-bold tabular-nums">{value}</p>
     </div>
   );
 }

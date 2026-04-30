@@ -70,7 +70,7 @@ export function InvoiceDetail({
       </div>
 
       {/* Invoice info */}
-      <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden">
+      <div className="bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)] overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-blue-400" />
@@ -153,7 +153,7 @@ export function InvoiceDetail({
 
       {/* Processing state if still running */}
       {invoice.status === 'processing' && !result && (
-        <div className="bg-[var(--bg-secondary)] rounded-xl border border-blue-500/20 p-8 flex flex-col items-center justify-center gap-3">
+        <div className="bg-[var(--bg-secondary)] rounded-lg border border-blue-500/20 p-8 flex flex-col items-center justify-center gap-3">
           <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center pulse-processing">
             <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
           </div>

@@ -7,7 +7,7 @@ import { RiskBadge } from './StatusBadge';
 
 export function RiskBriefCard({ assessment }: { assessment: RiskAssessment }) {
   return (
-    <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden">
+    <div className="bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)] overflow-hidden">
       <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-amber-400" />

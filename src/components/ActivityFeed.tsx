@@ -105,7 +105,7 @@ export function ActivityFeed() {
   };
 
   return (
-    <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden flex flex-col h-full">
+    <div className="bg-[var(--bg-primary)] rounded-lg border border-[var(--border)] overflow-hidden flex flex-col h-full">
       <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Radio className="w-4 h-4 text-blue-400" />

@@ -58,7 +58,7 @@ export function InvoiceQueue({
   const isProcessed = (id: string) => invoices.some((i) => i.id === id);
 
   return (
-    <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden">
+    <div className="bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)] overflow-hidden">
       <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-blue-400" />
@@ -70,7 +70,7 @@ export function InvoiceQueue({
         <button
           onClick={processAll}
           disabled={processingAll}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-all disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-all disabled:opacity-50"
         >
           {processingAll ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
           Process All
@@ -110,7 +110,7 @@ export function InvoiceQueue({
                       submitInvoice(seed.id);
                     }}
                     disabled={isSubmitting}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-tertiary)] hover:bg-blue-600 text-xs font-medium transition-all border border-[var(--border)] hover:border-blue-500 disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--bg-tertiary)] hover:bg-blue-600 text-xs font-medium transition-all border border-[var(--border)] hover:border-blue-500 disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
