@@ -23,6 +23,17 @@ No change required to **`src/lib/agent.ts`** (still one agent). No API contract 
 
 ## Verification
 
+### Automated (no Cursor API)
+
+```bash
+npm install          # installs devDependency `tsx`
+npm run verify:queue
+```
+
+Runs `scripts/verify-pipeline-queue.ts`: fires 5 overlapping `enqueuePipeline` tasks and asserts **max concurrency = 1** and strict **FIFO completion order**. This validates the queue implementation used by `process-invoice`.
+
+### Manual (full stack)
+
 1. Fresh dev server, **Process All** on 5 seeds (or hammer 5 quick POSTs to `/api/process-invoice`).
 2. Confirm invoices finish **serially** in the activity feed (no mixed vendor messages mid-run).
 3. Outcomes stable vs single-invoice baseline (especially low-risk invoices not randomly HIGH).
