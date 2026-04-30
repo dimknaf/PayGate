@@ -1,0 +1,162 @@
+[
+  {
+    "id": "emp-001",
+    "name": "Sarah Chen",
+    "email": "sarah.chen@company.com",
+    "role": "Head of Procurement",
+    "department": "Procurement",
+    "description": "Oversees all vendor relationships and procurement decisions. Final approver for new supplier contracts above £5,000. Must be notified for all first-time vendor payments."
+  },
+  {
+    "id": "emp-002",
+    "name": "James Mitchell",
+    "email": "james.mitchell@company.com",
+    "role": "CFO",
+    "department": "C-Suite",
+    "description": "Chief Financial Officer. Must be notified for all payments above £10,000 and any blocked transactions. Reviews monthly vendor spending reports."
+  },
+  {
+    "id": "emp-003",
+    "name": "Priya Sharma",
+    "email": "priya.sharma@company.com",
+    "role": "Accounts Payable Manager",
+    "department": "Finance",
+    "description": "Manages day-to-day accounts payable operations. Processes all approved payments and reconciles vendor invoices. Primary contact for payment queries."
+  },
+  {
+    "id": "emp-004",
+    "name": "Marcus Thompson",
+    "email": "marcus.thompson@company.com",
+    "role": "Senior Procurement Officer",
+    "department": "Procurement",
+    "description": "Handles vendor onboarding for technology and SaaS suppliers. Reviews contracts for IT-related purchases and software licensing agreements."
+  },
+  {
+    "id": "emp-005",
+    "name": "Elena Rodriguez",
+    "email": "elena.rodriguez@company.com",
+    "role": "Chief Compliance Officer",
+    "department": "Legal & Compliance",
+    "description": "Responsible for regulatory compliance and anti-money laundering policies. Must be notified for any HIGH risk assessments or blocked payments."
+  },
+  {
+    "id": "emp-006",
+    "name": "David Park",
+    "email": "david.park@company.com",
+    "role": "Financial Controller",
+    "department": "Finance",
+    "description": "Controls financial reporting and budget adherence. Approves expenditures that exceed departmental budgets. Reviews all flagged transactions."
+  },
+  {
+    "id": "emp-007",
+    "name": "Amara Okafor",
+    "email": "amara.okafor@company.com",
+    "role": "Procurement Analyst",
+    "department": "Procurement",
+    "description": "Analyses vendor pricing, contract terms, and spend patterns. Identifies cost-saving opportunities and flags unusual purchasing behaviour."
+  },
+  {
+    "id": "emp-008",
+    "name": "Robert Hayes",
+    "email": "robert.hayes@company.com",
+    "role": "General Counsel",
+    "department": "Legal & Compliance",
+    "description": "Head of legal department. Reviews vendor contracts with non-standard terms. Must be consulted for vendors in regulated industries or international jurisdictions."
+  },
+  {
+    "id": "emp-009",
+    "name": "Lisa Wang",
+    "email": "lisa.wang@company.com",
+    "role": "IT Security Lead",
+    "department": "IT Security",
+    "description": "Leads cybersecurity operations. Must be notified when onboarding technology vendors or SaaS providers that will have access to company systems or data."
+  },
+  {
+    "id": "emp-010",
+    "name": "Tom Bradley",
+    "email": "tom.bradley@company.com",
+    "role": "CEO",
+    "department": "C-Suite",
+    "description": "Chief Executive Officer. Only notified for strategic vendor partnerships, unusually large transactions above £50,000, or critical compliance escalations."
+  },
+  {
+    "id": "emp-011",
+    "name": "Fatima Al-Hassan",
+    "email": "fatima.alhassan@company.com",
+    "role": "AP Specialist",
+    "department": "Finance",
+    "description": "Processes vendor invoices, verifies purchase orders, and handles payment scheduling. First point of contact for vendor payment disputes."
+  },
+  {
+    "id": "emp-012",
+    "name": "Alex Novak",
+    "email": "alex.novak@company.com",
+    "role": "Compliance Analyst",
+    "department": "Legal & Compliance",
+    "description": "Performs due diligence checks on new vendors. Screens for sanctions, PEP lists, and adverse media. Handles KYC/KYB documentation."
+  },
+  {
+    "id": "emp-013",
+    "name": "Rachel Kim",
+    "email": "rachel.kim@company.com",
+    "role": "Operations Director",
+    "department": "Operations",
+    "description": "Oversees operational efficiency across departments. Manages vendor performance for operational supplies and services. Approves logistics vendor onboarding."
+  },
+  {
+    "id": "emp-014",
+    "name": "Daniel Foster",
+    "email": "daniel.foster@company.com",
+    "role": "Security Analyst",
+    "department": "IT Security",
+    "description": "Monitors vendor security posture and conducts third-party risk assessments. Reviews data processing agreements for new technology vendors."
+  },
+  {
+    "id": "emp-015",
+    "name": "Sophie Turner",
+    "email": "sophie.turner@company.com",
+    "role": "Internal Audit Manager",
+    "department": "Internal Audit",
+    "description": "Conducts audits on procurement processes and vendor payments. Reviews flagged transactions for compliance with internal policies. Reports to the audit committee."
+  },
+  {
+    "id": "emp-016",
+    "name": "Chris Oduya",
+    "email": "chris.oduya@company.com",
+    "role": "Treasury Analyst",
+    "department": "Finance",
+    "description": "Manages cash flow forecasting and payment timing. Coordinates international wire transfers and foreign currency payments. Handles banking relationships."
+  },
+  {
+    "id": "emp-017",
+    "name": "Hannah Brooks",
+    "email": "hannah.brooks@company.com",
+    "role": "Operations Manager",
+    "department": "Operations",
+    "description": "Manages supplier relationships for facilities, office supplies, and operational services. Handles vendor contract renewals and service level agreements."
+  },
+  {
+    "id": "emp-018",
+    "name": "Kevin Zhao",
+    "email": "kevin.zhao@company.com",
+    "role": "COO",
+    "department": "C-Suite",
+    "description": "Chief Operating Officer. Oversees all operational vendor relationships. Notified for vendors that impact business operations or when rapid onboarding patterns are detected."
+  },
+  {
+    "id": "emp-019",
+    "name": "Maria Santos",
+    "email": "maria.santos@company.com",
+    "role": "Senior Auditor",
+    "department": "Internal Audit",
+    "description": "Performs detailed audits on high-value vendor transactions. Reviews cross-invoice patterns and investigates potential procurement fraud."
+  },
+  {
+    "id": "emp-020",
+    "name": "Nathan Clarke",
+    "email": "nathan.clarke@company.com",
+    "role": "Supply Chain Manager",
+    "department": "Operations",
+    "description": "Manages end-to-end supply chain vendor relationships. Responsible for vendor performance monitoring, delivery tracking, and supply chain risk management."
+  }
+]

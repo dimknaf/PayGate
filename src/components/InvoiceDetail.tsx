@@ -7,6 +7,7 @@ import { StatusBadge } from './StatusBadge';
 import { VendorProfileCard } from './VendorProfile';
 import { RiskBriefCard } from './RiskBrief';
 import { PaymentActions } from './PaymentActions';
+import { NotificationPanel } from './NotificationPanel';
 
 export function InvoiceDetail({
   invoiceId,
@@ -143,6 +144,11 @@ export function InvoiceDetail({
           <VendorProfileCard vendor={result.vendorProfile} />
           <RiskBriefCard assessment={result.riskAssessment} />
         </div>
+      )}
+
+      {/* Notification panel */}
+      {result?.suggestedRecipients && result.suggestedRecipients.length > 0 && (
+        <NotificationPanel recipients={result.suggestedRecipients} />
       )}
 
       {/* Processing state if still running */}

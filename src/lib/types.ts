@@ -145,11 +145,28 @@ export interface ActivityEvent {
   data?: Record<string, unknown>;
 }
 
+export interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  department: string;
+  description: string;
+}
+
+export interface NotificationRecipient {
+  employee: Employee;
+  reason: string;
+  priority: 'required' | 'recommended' | 'fyi';
+  selected: boolean;
+}
+
 export interface ProcessingResult {
   invoice: Invoice;
   vendorProfile: VendorProfile;
   riskAssessment: RiskAssessment;
   transaction?: Transaction;
+  suggestedRecipients?: NotificationRecipient[];
 }
 
 export interface CrossInvoicePattern {

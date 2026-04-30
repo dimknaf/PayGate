@@ -10,8 +10,11 @@ import {
   SpecterCompany,
   SpecterPerson,
   WebsiteCheck,
+  Employee,
+  NotificationRecipient,
 } from './types';
 import { executePaymentDecision } from './mock-payment';
+import employeesData from '../data/employees.json';
 
 function log(invoiceId: string, ...args: unknown[]) {
   console.log(`[${new Date().toLocaleTimeString('en-GB')}] [${invoiceId}]`, ...args);
@@ -432,11 +435,15 @@ export async function processInvoice(invoice: Invoice): Promise<ProcessingResult
   const processingTimeMs = Date.now() - startTime;
   const transaction = executePaymentDecision(invoice, investigation.riskAssessment, processingTimeMs);
 
+  // Notification routing — agent selects relevant employees
+  const suggestedRecipients = await routeNotifications(invoice, investigation.riskAssessment, vendorProfile);
+
   const result: ProcessingResult = {
     invoice: store.getInvoice(invoice.id)!,
     vendorProfile,
     riskAssessment: investigation.riskAssessment,
     transaction,
+    suggestedRecipients,
   };
 
   store.setProcessingResult(invoice.id, result);
@@ -470,6 +477,100 @@ export async function processInvoice(invoice: Invoice): Promise<ProcessingResult
   );
 
   return result;
+}
+
+async function routeNotifications(
+  invoice: Invoice,
+  riskAssessment: RiskAssessment,
+  vendorProfile: VendorProfile
+): Promise<NotificationRecipient[]> {
+  emitActivity(invoice.id, 'notification_routing', 'Selecting relevant team members to notify...');
+  log(invoice.id, '--- Notification Routing ---');
+
+  const employees: Employee[] = employeesData as Employee[];
+
+  const agent = await getAgent();
+  const employeeList = employees.map(e =>
+    `- ${e.name} (${e.role}, ${e.department}): ${e.description}`
+  ).join('\n');
+
+  const prompt = `Based on this invoice and its risk assessment, select which employees should be notified.
+
+INVOICE:
+- Vendor: ${invoice.vendorName}
+- Amount: ${invoice.currency} ${invoice.amount}
+- Description: ${invoice.description}
+- Invoice #: ${invoice.invoiceNumber}
+
+RISK ASSESSMENT:
+- Risk Level: ${riskAssessment.riskLevel}
+- Risk Score: ${riskAssessment.riskScore.toFixed(2)}
+- Recommendation: ${riskAssessment.recommendation}
+- Key triggers: ${riskAssessment.thresholdsTriggered.join(', ')}
+
+VENDOR:
+- Name: ${vendorProfile.name}
+- Domain: ${vendorProfile.domain || 'unknown'}
+- Industry: ${vendorProfile.specterData?.industry || 'unknown'}
+- Trust Score: ${vendorProfile.trustScore}
+
+EMPLOYEES:
+${employeeList}
+
+Select the most relevant employees to notify about this transaction. For each, provide:
+- Their employee ID
+- Priority: "required" (must know), "recommended" (should know), or "fyi" (nice to know)
+- A brief reason why they should be notified (1 sentence)
+
+Return ONLY a JSON array like:
+[{"id": "emp-001", "priority": "required", "reason": "As Head of Procurement, must approve all first-time vendor payments."}]
+
+Select 3-6 people. Be selective — not everyone needs to know about every invoice.`;
+
+  try {
+    const response = await streamAgentResponse(agent, prompt, invoice.id, 'notification-routing', {
+      model: { id: 'composer-2' },
+    });
+
+    const jsonStr = extractJSON(response);
+    const selections: Array<{ id: string; priority: string; reason: string }> = JSON.parse(
+      jsonStr.startsWith('[') ? jsonStr : `[${jsonStr}]`
+    );
+
+    const recipients: NotificationRecipient[] = selections
+      .map(sel => {
+        const employee = employees.find(e => e.id === sel.id);
+        if (!employee) return null;
+        return {
+          employee,
+          reason: sel.reason || 'Selected by agent',
+          priority: (['required', 'recommended', 'fyi'].includes(sel.priority) ? sel.priority : 'fyi') as NotificationRecipient['priority'],
+          selected: sel.priority === 'required' || sel.priority === 'recommended',
+        };
+      })
+      .filter((r): r is NotificationRecipient => r !== null);
+
+    const names = recipients.map(r => `${r.employee.name} (${r.priority})`).join(', ');
+    emitActivity(invoice.id, 'notification_complete',
+      `Selected ${recipients.length} recipients: ${names}`,
+      { recipients: recipients.map(r => ({ name: r.employee.name, priority: r.priority })) }
+    );
+    log(invoice.id, `Notification routing complete: ${recipients.length} recipients`);
+
+    return recipients;
+  } catch (e) {
+    log(invoice.id, 'Notification routing failed:', e);
+    emitActivity(invoice.id, 'notification_complete', 'Notification routing skipped — using defaults');
+    // Fallback: always notify AP Manager and Head of Procurement
+    return employees
+      .filter(e => ['emp-001', 'emp-003'].includes(e.id))
+      .map(employee => ({
+        employee,
+        reason: 'Default recipient for all vendor transactions',
+        priority: 'required' as const,
+        selected: true,
+      }));
+  }
 }
 
 function detectPatterns(newInvoice: Invoice): void {
